@@ -1,0 +1,14 @@
+# Ambientes Virtuais Python
+.venv/
+env/
+venv/
+ENV/
+
+# Arquivos de configurações locais / IA
+.gemini/
+
+# Arquivos compilados / temporários
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store

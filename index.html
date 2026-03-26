@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cientista da Terra - Fase Final</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            background-color: #2d5e2d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Press Start 2P', cursive;
+        }
+        canvas {
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // Variáveis de escopo global para compartilharem o mesmo estado entre Cenas
+        // ========================== CONFIGURAÇÕES GLOBAIS E TRADUÇÃO ==========================
+        let idiomaAtual = 'PT';
+        const TEXTOS = {
+            PT: {
+                titulo: "CIENTISTA DA TERRA",
+                subtitulo: "vamos salvar o mundo da poluição, juntos?",
+                jogar: "JOGAR", idiomas: "IDIOMAS", tutorial: "TUTORIAL",
+                controles: "COMANDOS",
+                correr: "WASD/Setas: Correr", pular: "W/Espaço: Pular", coletar: "E: Coletar/Falar",
+                voltar: "VOLTAR",
+                lixo_coletado: "LIXO COLETADO: ",
+                obj_onca: "OBJETIVO: Falar com a onça",
+                obj_limpar: "OBJETIVO: Limpar a floresta",
+                obj_bonus: "BÔNUS: Siga atrás da onça!",
+                obj_dolphin: "OBJETIVO: Ajude o Golfinho preso no lixo",
+                obj_falar_golf: "OBJETIVO: Fale com o Golfinho!",
+                obj_ocean: "OBJETIVO: Explore o assoalho marinho",
+                obj_turtle: "OBJETIVO: Siga à esquerda para o oceano",
+                final: "OBRIGADO POR JOGAR!",
+                dica_falar: "[E] Falar", dica_coletar: "[E] Coletar", dica_libertar: "[E] Libertar",
+                // Diálogos Fase 1
+                onca1: 'Onça: "Cientista! Que bom que você chegou! Minha floresta está um caos, cheia de lixo que os humanos deixaram. Meus filhotes estão em perigo!"',
+                cien1: 'Cientista: "Não se preocupe, amiga Onça! Eu vim preparado para limpar toda essa poluição e proteger os seus filhotes. Vamos ao trabalho!"',
+                onca2: 'Onça: "Muito obrigada, Cientista! A floresta respira novamente! Mas ouvi dizer que no Oceano a situação está terrível... Você pode ir até lá?"',
+                cien2: 'Cientista: "Pode deixar, dona Onça! É meu dever proteger a vida. Partirei para o fundo do mar imediatamente!"',
+                // Diálogos Fase 2
+                tart1: 'Tartaruga (Feliz): "Ufa! Muito obrigada, humano. Eu estava presa há dias! Por favor, eu preciso de ajuda... Meu melhor amigo, o Golfinho, ficou preso em redes de pesca nos lixos do oceano!"',
+                cien_tart: 'Cientista: "Não se preocupe, eu vou ajudar! Para onde eu devo ir?"',
+                tart2: 'Tartaruga: "Siga reto para a esquerda! Você vai encontrá-lo nas profundezas."',
+                // Diálogos Fase 3
+                golf1: 'Golfinho: "Muito obrigado, bravo Cientista! Quase não consegui respirar debaixo desse lixo sufocante. Você é um herói das marés!"',
+                cien_golf: 'Cientista: "A ciência sempre encontra um jeito! Navegue livre pelos oceanos, meu grande amigo azul, e fuja da poluição!"',
+                cien_final: 'Cientista: "Hoje aprendemos uma lição valiosa. A natureza é nosso bem mais precioso. Cada lixo retirado garante um futuro para todos os seres vivos. Proteja nosso mundo!"'
+            },
+            EN: {
+                titulo: "EARTH SCIENTIST",
+                subtitulo: "let's save the world from pollution, together?",
+                jogar: "PLAY", idiomas: "LANGUAGES", tutorial: "TUTORIAL",
+                controles: "CONTROLS",
+                correr: "WASD/Arrows: Move", pular: "W/Space: Jump", coletar: "E: Collect/Talk",
+                voltar: "BACK",
+                lixo_coletado: "TRASH COLLECTED: ",
+                obj_onca: "GOAL: Talk to the jaguar",
+                obj_limpar: "GOAL: Clean the forest",
+                obj_bonus: "BONUS: Go behind the jaguar!",
+                obj_dolphin: "GOAL: Help the trapped Dolphin",
+                obj_falar_golf: "GOAL: Talk to the Dolphin!",
+                obj_ocean: "GOAL: Explore the ocean floor",
+                obj_turtle: "GOAL: Head left to the open ocean",
+                final: "THANKS FOR PLAYING!",
+                dica_falar: "[E] Talk", dica_coletar: "[E] Collect", dica_libertar: "[E] Free",
+                onca1: 'Jaguar: "Scientist! I am glad you are here! My forest is a mess, full of trash humans left. My cubs are in danger!"',
+                cien1: 'Scientist: "Don\'t worry, Jaguar! I came prepared to clean all this pollution and protect your cubs. Let\'s work!"',
+                onca2: 'Jaguar: "Thank you! The forest breathes again! But I heard the Ocean is also in a terrible state... Can you go there?"',
+                cien2: 'Scientist: "Don\'t worry! It\'s my duty to protect life. I will head to the ocean floor immediately!"',
+                tart1: 'Turtle (Happy): "Phew! Thank you so much, human. I was stuck for days! Please, I need help... My best friend, Dolphin, is trapped in fishing nets in the ocean trash!"',
+                cien_tart: 'Scientist: "Don\'t worry, I will help! Where should I go?"',
+                tart2: 'Turtle: "Go straight to the left! You will find him in the depths."',
+                golf1: 'Dolphin: "Thank you so much, brave Scientist! I could barely breathe under that suffocating trash. You are a hero!"',
+                cien_golf: 'Scientist: "A science always finds a way! Swim free across the oceans, blue friend, and flee from pollution!"',
+                cien_final: 'Scientist: "Today we learned a valuable lesson. Nature is our most precious asset. Every piece of trash removed ensures a future for all living beings. Protect our world!"'
+            },
+            ZH: {
+                titulo: "地球科学家",
+                subtitulo: "让我们一起从污染中拯救世界，好吗？",
+                jogar: "开始游戏", idiomas: "语言选择", tutorial: "游戏教程",
+                controles: "操作控制",
+                correr: "WASD/方向键: 移动", pular: "W/空格: 跳跃", coletar: "E: 收集/对话",
+                voltar: "返回",
+                lixo_coletado: "收集垃圾: ",
+                obj_onca: "目标: 与美洲豹对话",
+                obj_limpar: "目标: 清理森林",
+                obj_bonus: "奖励: 走到美洲豹身后!",
+                obj_dolphin: "目标: 帮助被困的海豚",
+                obj_falar_golf: "目标: 与海豚交谈!",
+                obj_ocean: "目标: 探索该区域",
+                obj_turtle: "目标: 向左前往公海",
+                final: "感谢游玩!",
+                dica_falar: "[E] 交谈", dica_coletar: "[E] 收集", dica_libertar: "[E] 释放",
+                onca1: '美洲豹: "科学家! 很高兴你来了! 我的森林一团糟，到处是人类留下的垃圾。我的幼崽正处于危险中!"',
+                cien1: '科学家: "别担心，美洲豹朋友! 我准备好清理这一切并保护你的幼崽了。开始工作吧!"',
+                onca2: '美洲豹: "非常感谢! 森林可以再次呼吸了! 但我听说海洋的情况也很糟糕... 你能去那里吗?"',
+                cien2: '科学家: "放心吧! 保护生命是我的职责。我立即前往海底!"',
+                tart1: '海龟（开心）: "呼！太感谢你了，人类。我被困好几天了！求求你，我需要帮助……我最好的朋友海豚被海洋垃圾中的渔网困住了！"',
+                cien_tart: '科学家: "别担心，我会帮忙的！我该往哪走？"',
+                tart2: '海龟: "一直往左走！你会在深处找到他的。"',
+                golf1: '海豚: "太感谢了，勇敢的科学家! 在那些令人窒息的垃圾下，我几乎无法呼吸。你是个英雄!"',
+                cien_golf: '科学家: "科学总有办法！在海洋中自由翱翔吧，蓝色的朋友，远离污染！"',
+                cien_final: '科学家: "今天我们学到了宝贵的一课。大自然是我们最珍贵的资产。清理每一块垃圾都能确保所有生物的未来。请保护我们的世界！"'
+            }
+        };
+
+        let player;
+        let platforms;
+        let cursors;
+        let qtdePulos = 0;
+        let onca;
+        let tartaruga;
+        let dialogoContainer;
+        let dicaFalar;
+        let dicaLixo;
+        let keyEspaco;
+        let keyE;
+        let keyW, keyA, keyS, keyD;
+        let dialogando = false;
+        let falouComAOnca = false;
+        let falouFinalComAOnca = false;
+        let tartarugaSalva = false;
+        let tartarugaLibertada = false; // Flag para clique duplo de resgate
+        let dialogStep = 0;
+        let portraitOnca;
+        let portraitCientista;
+        let lixosMarinhos;
+        let lixosMarinhosColetados = 0;
+        let totalLixosMarinhos = 0;
+        let todosLixosLimpos = false;
+        let golfinho;
+        let bgFase3;
+        let pontuacao = 0;
+        let totalLixos = 25;
+        let textoPontuacao;
+        let textoObjetivo;
+
+        // Função utilitária global para qualquer Cena criar seu diálogo
+        function criarDialogo(scene) {
+            dialogoContainer = scene.add.container(400, 520); 
+            dialogoContainer.setDepth(100);
+
+            portraitOnca = scene.add.image(-280, -70, 'onca_portrait');
+            portraitOnca.setScale(0.5);
+            
+            portraitCientista = scene.add.image(280, -70, 'cientista_portrait');
+            portraitCientista.setScale(0.5);
+            portraitCientista.flipX = true; 
+
+            let bgDialog = scene.add.rectangle(0, 0, 700, 120, 0xffeedd); 
+            bgDialog.setStrokeStyle(4, 0x8b4513); 
+            // Removed alpha so the box is opaque (1.0), hiding the lower part of the portraits
+
+            txtDialogo = scene.add.text(-330, -40, '', 
+                { fontSize: '18px', fill: '#333', wordWrap: { width: 660 }, fontFamily: 'Arial', fontWeight: 'bold' }
+            );
+
+            portraitOnca.setVisible(false);
+            portraitCientista.setVisible(false);
+
+            let dica = scene.add.text(140, 35, '[Pressione ESPAÇO ou E]', 
+                { fontSize: '14px', fill: '#666', fontStyle: 'italic' }
+            );
+
+            dialogoContainer.add([portraitOnca, portraitCientista, bgDialog, txtDialogo, dica]);
+        }
+
+        // ========================== CENA DE MENU ==========================
+        const MenuScene = {
+            key: 'MenuScene',
+            preload: function() {
+                this.load.image('fundo_menu', './FUNDOS/início.png');
+            },
+            create: function() {
+                this.add.image(400, 300, 'fundo_menu').setDisplaySize(800, 600);
+                this.add.text(400, 150, TEXTOS[idiomaAtual].titulo, { fontFamily: '"Press Start 2P"', fontSize: '30px', fill: '#fff', stroke: '#000', strokeThickness: 4 }).setOrigin(0.5);
+                this.add.text(400, 200, TEXTOS[idiomaAtual].subtitulo, { fontFamily: 'Arial', fontSize: '18px', fill: '#FFD700', stroke: '#000', strokeThickness: 2 }).setOrigin(0.5);
+                const criarBotao = (x, y, label, cb) => {
+                    let b = this.add.rectangle(x, y, 320, 50, 0x000000, 0.6).setInteractive({useHandCursor:true}).setStrokeStyle(4, 0xaaaaaa);
+                    this.add.text(x, y, label, { fontFamily: '"Press Start 2P"', fontSize: '16px', fill: '#fff' }).setOrigin(0.5);
+                    b.on('pointerdown', cb); 
+                    b.on('pointerover', () => b.setAlpha(0.9));
+                    b.on('pointerout', () => b.setAlpha(0.6));
+                    return b;
+                };
+                criarBotao(400, 320, TEXTOS[idiomaAtual].jogar, () => this.scene.start('Fase1'));
+                criarBotao(400, 400, `${TEXTOS[idiomaAtual].idiomas}: ${idiomaAtual}`, () => {
+                    idiomaAtual = (idiomaAtual === 'PT') ? 'EN' : (idiomaAtual === 'EN' ? 'ZH' : 'PT');
+                    this.scene.restart();
+                });
+                criarBotao(400, 480, TEXTOS[idiomaAtual].tutorial, () => this.scene.start('TutorialScene'));
+            }
+        };
+
+        // ========================== CENA DE TUTORIAL ==========================
+        const TutorialScene = {
+            key: 'TutorialScene',
+            create: function() {
+                this.add.rectangle(400, 300, 800, 600, 0x222222);
+                this.add.text(400, 100, TEXTOS[idiomaAtual].tutorial, { fontFamily: '"Press Start 2P"', fontSize: '30px', fill: '#FFD700' }).setOrigin(0.5);
+                let info = `\n${TEXTOS[idiomaAtual].correr}\n\n${TEXTOS[idiomaAtual].pular}\n\n${TEXTOS[idiomaAtual].coletar}`;
+                this.add.text(400, 300, info, { fontFamily: '"Press Start 2P"', fontSize: '16px', fill: '#fff', align: 'center' }).setOrigin(0.5);
+                let btn = this.add.rectangle(400, 500, 200, 50, 0x444444).setInteractive({useHandCursor:true}).setStrokeStyle(3, 0xffffff);
+                this.add.text(400, 500, TEXTOS[idiomaAtual].voltar, { fontFamily: '"Press Start 2P"', fontSize: '14px', fill: '#fff' }).setOrigin(0.5);
+                btn.on('pointerdown', () => this.scene.start('MenuScene'));
+            }
+        };
+
+        // ========================== FASE 1: FLORESTA ==========================
+        const Fase1 = {
+            key: 'Fase1',
+            preload: function() {
+                this.load.image('fundo', './terra.jpg');
+                this.load.image('fundo_limpo', './terra_limpa.png');
+                this.load.image('parado', './0parado.png');
+                this.load.image('anda1', './1andando.png');
+                this.load.image('anda2', './2andando.png');
+                this.load.image('anda3', './3andando.png');
+                this.load.image('pulo2', './5pulando.png');
+                this.load.image('onca', './onca.png');
+                this.load.image('onca_feliz', './onca_feliz.png');
+                this.load.image('onca_portrait', './onca.png');
+                this.load.image('onca_feliz_portrait', './onca_feliz.png');
+                this.load.image('cientista_portrait', './0parado.png');
+                this.load.image('latalixo', './latalixo.png');
+                this.load.image('pneus', './pneus.png');
+            },
+            create: function() {
+                this.bgFase1 = this.add.image(400, 300, 'fundo').setDisplaySize(800, 600);
+                platforms = this.physics.add.staticGroup();
+                platforms.add(this.add.rectangle(400, 535, 800, 20, 0, 0));
+                platforms.create(150, 290, null).setSize(300, 20).setVisible(false);
+                platforms.create(470, 360, null).setSize(240, 20).setVisible(false);
+                platforms.create(645, 200, null).setSize(310, 20).setVisible(false);
+
+                player = this.physics.add.sprite(750, 400, 'parado').setCollideWorldBounds(true).setScale(0.3).setDepth(10);
+                player.body.setSize(180, 280);
+                this.physics.add.collider(player, platforms);
+
+                onca = this.physics.add.staticSprite(70, 500, 'onca').setScale(0.3).setDepth(20);
+                dicaFalar = this.add.text(onca.x-45, onca.y-70, TEXTOS[idiomaAtual].dica_falar, { fontSize: '14px', fill: '#fff' }).setVisible(false);
+
+                criarDialogo(this); dialogoContainer.setVisible(false);
+                lixos = this.physics.add.staticGroup();
+                [{x:160,y:240,k:'latalixo'},{x:240,y:240,k:'pneus'},{x:380,y:480,k:'pneus'},{x:600,y:480,k:'latalixo'},
+                 {x:200,y:480,k:'latalixo'},{x:300,y:480,k:'pneus'},{x:450,y:300,k:'latalixo'},{x:550,y:300,k:'pneus'},
+                 {x:650,y:140,k:'latalixo'},{x:750,y:140,k:'pneus'}].forEach(l => lixos.create(l.x, l.y, l.k).setScale(0.25).refreshBody());
+                
+                textoPontuacao = this.add.text(20, 20, TEXTOS[idiomaAtual].lixo_coletado + ' 0', { fontFamily: '"Press Start 2P"', fontSize: '18px', fill: '#FFD700' }).setDepth(200);
+                textoObjetivo = this.add.text(20, 50, TEXTOS[idiomaAtual].obj_onca, { fontFamily: '"Press Start 2P"', fontSize: '14px', fill: '#FFFF00' }).setDepth(200);
+                dicaLixo = this.add.text(0,0, TEXTOS[idiomaAtual].dica_coletar, { fontSize: '12px', fill: '#fff', backgroundColor: '#0008' }).setVisible(false);
+
+                keyEspaco = this.input.keyboard.addKey('SPACE'); keyE = this.input.keyboard.addKey('E');
+                keyW = this.input.keyboard.addKey('W'); keyA = this.input.keyboard.addKey('A'); keyD = this.input.keyboard.addKey('D');
+                cursors = this.input.keyboard.createCursorKeys();
+
+                this.anims.create({ key: 'andar', frames: [{key:'anda1'},{key:'anda2'},{key:'anda3'}], frameRate: 10, repeat: -1 });
+            },
+            update: function() {
+                if (falouFinalComAOnca && player.x < 50) return this.scene.start('FaseOceano');
+                if (dialogando) {
+                    player.setVelocityX(0);
+                    if (Phaser.Input.Keyboard.JustDown(keyEspaco) || Phaser.Input.Keyboard.JustDown(keyE)) {
+                        if (dialogStep === 1) { 
+                            dialogStep = 2; txtDialogo.setText(TEXTOS[idiomaAtual].cien1);
+                            portraitOnca.setVisible(false); portraitCientista.setVisible(true);
+                        } else if (dialogStep === 2) { 
+                            dialogoContainer.setVisible(false); dialogando = false; falouComAOnca = true; textoObjetivo.setText(TEXTOS[idiomaAtual].obj_limpar); 
+                        } else if (dialogStep === 3) { 
+                            dialogStep = 4; txtDialogo.setText(TEXTOS[idiomaAtual].cien2); 
+                            portraitOnca.setVisible(false); portraitCientista.setVisible(true);
+                        } else if (dialogStep === 4) { 
+                            dialogoContainer.setVisible(false); dialogando = false; falouFinalComAOnca = true; textoObjetivo.setText(TEXTOS[idiomaAtual].obj_bonus); 
+                        }
+                    }
+                    return;
+                }
+                let distOnca = Phaser.Math.Distance.Between(player.x, player.y, onca.x, onca.y);
+                if (distOnca < 100 && ((!falouComAOnca) || (pontuacao >= 4 && !falouFinalComAOnca))) {
+                    dicaFalar.setVisible(true);
+                    if (Phaser.Input.Keyboard.JustDown(keyE)) {
+                        dialogando = true; dicaFalar.setVisible(false);
+                        if (!falouComAOnca) { 
+                            dialogStep = 1; portraitOnca.setTexture('onca_portrait').setVisible(true); 
+                            portraitCientista.setVisible(false);
+                            txtDialogo.setText(TEXTOS[idiomaAtual].onca1); 
+                        } else { 
+                            dialogStep = 3; onca.setTexture('onca_feliz'); 
+                            portraitOnca.setTexture('onca_feliz_portrait').setVisible(true); 
+                            portraitCientista.setVisible(false);
+                            txtDialogo.setText(TEXTOS[idiomaAtual].onca2); 
+                        }
+                        dialogoContainer.setVisible(true);
+                    }
+                } else dicaFalar.setVisible(false);
+
+                if (falouComAOnca) {
+                    let lixoProx = null;
+                    lixos.getChildren().forEach(l => { if (l.active && Phaser.Math.Distance.Between(player.x, player.y, l.x, l.y) < 60) lixoProx = l; });
+                    if (lixoProx) {
+                        dicaLixo.setPosition(lixoProx.x, lixoProx.y - 40).setVisible(true);
+                        if (Phaser.Input.Keyboard.JustDown(keyE)) {
+                            lixoProx.disableBody(true, true); pontuacao++;
+                            textoPontuacao.setText(TEXTOS[idiomaAtual].lixo_coletado + pontuacao);
+                            if (pontuacao >= 10) { 
+                                textoObjetivo.setText(TEXTOS[idiomaAtual].obj_onca); 
+                                this.bgFase1.setTexture('fundo_limpo').setDisplaySize(800, 600); 
+                            }
+                        }
+                    } else dicaLixo.setVisible(false);
+                }
+                if (cursors.left.isDown || keyA.isDown) { player.setVelocityX(-160); player.anims.play('andar', true); player.flipX = true; }
+                else if (cursors.right.isDown || keyD.isDown) { player.setVelocityX(160); player.anims.play('andar', true); player.flipX = false; }
+                else { player.setVelocityX(0); player.anims.stop(); player.setTexture('parado'); }
+                if (player.body.touching.down) { qtdePulos = 0; }
+                if ((Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(keyEspaco) || Phaser.Input.Keyboard.JustDown(keyW))) {
+                    if (player.body.touching.down) {
+                        player.setVelocityY(-450);
+                        qtdePulos = 1;
+                    } else if (qtdePulos < 2) {
+                        player.setVelocityY(-400);
+                        qtdePulos = 2;
+                    }
+                }
+            }
+        };
+
+        // ========================== FASE 2: OCEANO ==========================
+        const FaseOceano = {
+            key: 'FaseOceano',
+            preload: function() {
+                this.load.image('fase2_bg', './oceano.jpg');
+                this.load.image('tartaruga', './tartaruga.png');
+                this.load.image('tartaruga_feliz', './tartaruga_feliz.png');
+                this.load.image('tartaruga_portrait', './tartaruga.png');
+                this.load.image('nadando1', './nadando_1.png');
+                this.load.image('nadando2', './nadando_2.png');
+                this.load.image('cientista_portrait', './0parado.png');
+                this.load.image('flutuando', './flutuando.png');
+            },
+            create: function() {
+                this.add.image(400, 300, 'fase2_bg').setDisplaySize(800, 600);
+                platforms = this.physics.add.staticGroup();
+                platforms.create(400, 580, null).setSize(800, 40).setVisible(false);
+                this.physics.world.gravity.y = 300;
+                player = this.physics.add.sprite(100, 500, 'flutuando').setCollideWorldBounds(true).setScale(0.4);
+                this.physics.add.collider(player, platforms);
+                this.anims.create({ key: 'nadar', frames: [{key:'nadando1'},{key:'nadando2'}], frameRate: 5, repeat: -1 });
+                tartaruga = this.physics.add.staticSprite(600, 520, 'tartaruga').setScale(0.55).setFlipX(true);
+                dicaFalar = this.add.text(tartaruga.x - 45, tartaruga.y - 100, TEXTOS[idiomaAtual].dica_libertar, { fontSize: '14px', fill: '#fff' }).setVisible(false);
+                criarDialogo(this); dialogoContainer.setVisible(false);
+                textoObjetivo = this.add.text(20, 20, TEXTOS[idiomaAtual].obj_ocean, { fontFamily: '"Press Start 2P"', fontSize: '14px', fill: '#FFFF00' });
+                keyE = this.input.keyboard.addKey('E'); cursors = this.input.keyboard.createCursorKeys();
+                keyA = this.input.keyboard.addKey('A'); keyD = this.input.keyboard.addKey('D'); 
+                keyW = this.input.keyboard.addKey('W'); keyEspaco = this.input.keyboard.addKey('SPACE');
+            },
+            update: function() {
+                if (tartarugaSalva && player.x <= 130) return this.scene.start('FaseOceanoAberta');
+                if (dialogando) {
+                    player.setVelocityX(0);
+                    if (Phaser.Input.Keyboard.JustDown(keyEspaco) || Phaser.Input.Keyboard.JustDown(keyE)) {
+                        if (dialogStep === 1) { 
+                            dialogStep = 2; txtDialogo.setText(TEXTOS[idiomaAtual].cien_tart); 
+                            portraitOnca.setVisible(false); portraitCientista.setVisible(true);
+                        } else if (dialogStep === 2) { 
+                            dialogStep = 3; txtDialogo.setText(TEXTOS[idiomaAtual].tart2); 
+                            portraitOnca.setVisible(true); portraitCientista.setVisible(false);
+                        } else if (dialogStep === 3) { dialogoContainer.setVisible(false); dialogando = false; tartarugaSalva = true; textoObjetivo.setText(TEXTOS[idiomaAtual].obj_turtle); }
+                    }
+                    return;
+                }
+                let dist = Phaser.Math.Distance.Between(player.x, player.y, tartaruga.x, tartaruga.y);
+                if (dist < 150 && !tartarugaSalva) {
+                    dicaFalar.setText(tartarugaLibertada ? TEXTOS[idiomaAtual].dica_falar : TEXTOS[idiomaAtual].dica_libertar).setVisible(true);
+                    if (Phaser.Input.Keyboard.JustDown(keyE)) {
+                        if (!tartarugaLibertada) { tartarugaLibertada = true; tartaruga.setTexture('tartaruga_feliz'); }
+                        else { 
+                            dialogando = true; dialogStep = 1; txtDialogo.setText(TEXTOS[idiomaAtual].tart1); 
+                            portraitOnca.setTexture('tartaruga_portrait').setVisible(true); 
+                            portraitCientista.setVisible(false);
+                            dialogoContainer.setVisible(true); 
+                        }
+                    }
+                } else dicaFalar.setVisible(false);
+                if (cursors.left.isDown || keyA.isDown) { player.setVelocityX(-90); player.anims.play('nadar', true); player.flipX = true; }
+                else if (cursors.right.isDown || keyD.isDown) { player.setVelocityX(90); player.anims.play('nadar', true); player.flipX = false; }
+                else { player.setVelocityX(0); player.anims.stop(); player.setTexture('flutuando'); }
+                if (player.body.touching.down) { qtdePulos = 0; }
+                if ((Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(keyEspaco) || Phaser.Input.Keyboard.JustDown(keyW))) {
+                    if (player.body.touching.down) {
+                        player.setVelocityY(-250);
+                        qtdePulos = 1;
+                    } else if (qtdePulos < 2) {
+                        player.setVelocityY(-220);
+                        qtdePulos = 2;
+                    }
+                }
+            }
+        };
+
+        // ========================== FASE 3: OCEANO ABERTO ==========================
+        const FaseOceanoAberta = {
+            key: 'FaseOceanoAberta',
+            preload: function() {
+                this.load.image('fase3_bg', './oceano_1.png');
+                this.load.image('fase3_res', './ecossistema_restaurado.png');
+                this.load.image('golfinho', './golfinho.png');
+                this.load.image('golf_feliz', './golfinho_feliz.png');
+                this.load.image('plastico', './plastico.png');
+                this.load.image('rede', './rede.png');
+                this.load.image('petroleo', './petroleo.png');
+                this.load.image('latao', './latao.png');
+                this.load.image('cientista_portrait', './0parado.png');
+            },
+            create: function() {
+                bgFase3 = this.add.image(400, 300, 'fase3_bg').setDisplaySize(800, 600);
+                platforms = this.physics.add.staticGroup();
+                platforms.create(400, 580, null).setSize(800, 40).setVisible(false);
+                this.physics.world.gravity.y = 300;
+                golfinho = this.physics.add.staticSprite(120, 490, 'golfinho').setScale(0.5).setFlipX(true).setDepth(1);
+                lixosMarinhos = this.physics.add.staticGroup();
+                [{x:60,y:520,k:'latao',s:0.4},{x:400,y:550,k:'petroleo',s:0.15},{x:700,y:500,k:'latao',s:0.35},
+                 {x:100,y:540,k:'rede',s:0.12},{x:160,y:540,k:'plastico',s:0.1},{x:90,y:490,k:'plastico',s:0.1}].forEach(l => {
+                    let obj = lixosMarinhos.create(l.x, l.y, l.k).setScale(l.s).setDepth(2).setTint(0x507ea1).refreshBody();
+                });
+                player = this.physics.add.sprite(750, 400, 'flutuando').setCollideWorldBounds(true).setScale(0.4).setDepth(3);
+                this.physics.add.collider(player, platforms);
+                textoObjetivo = this.add.text(20, 20, TEXTOS[idiomaAtual].obj_dolphin, { fontFamily: '"Press Start 2P"', fontSize: '14px', fill: '#FFFF00' });
+                dicaLixo = this.add.text(0,0, TEXTOS[idiomaAtual].dica_coletar, { fontSize: '12px', fill: '#fff', backgroundColor: '#0008' }).setVisible(false);
+                criarDialogo(this); dialogoContainer.setVisible(false);
+                keyE = this.input.keyboard.addKey('E'); cursors = this.input.keyboard.createCursorKeys();
+                keyA = this.input.keyboard.addKey('A'); keyD = this.input.keyboard.addKey('D'); 
+                keyW = this.input.keyboard.addKey('W'); keyEspaco = this.input.keyboard.addKey('SPACE');
+            },
+            update: function() {
+                if (dialogando) {
+                    player.setVelocityX(0);
+                    if (Phaser.Input.Keyboard.JustDown(keyEspaco) || Phaser.Input.Keyboard.JustDown(keyE)) {
+                        if (dialogStep === 1) { 
+                            dialogStep = 2; txtDialogo.setText(TEXTOS[idiomaAtual].cien_golf); 
+                            portraitOnca.setVisible(false); portraitCientista.setVisible(true);
+                        }
+                        else if (dialogStep === 2) {
+                            dialogando = false; this.cameras.main.fadeOut(800);
+                            this.cameras.main.once('camerafadeoutcomplete', () => {
+                                player.setVisible(false); golfinho.setVisible(false); bgFase3.setTint(0x444444);
+                                this.cameras.main.fadeIn(800); dialogando = true; dialogStep = 3;
+                                portraitCientista.setVisible(true); portraitOnca.setVisible(false);
+                                txtDialogo.setText(TEXTOS[idiomaAtual].cien_final);
+                            });
+                        } else if (dialogStep === 3) {
+                            dialogoContainer.setVisible(false); dialogando = false;
+                            this.cameras.main.fadeOut(1500);
+                            this.cameras.main.once('camerafadeoutcomplete', () => {
+                                bgFase3.clearTint(); bgFase3.setTexture('fase3_res').setDisplaySize(800, 600);
+                                this.cameras.main.fadeIn(1500);
+                                textoObjetivo.setText(TEXTOS[idiomaAtual].final).setX(400 - (textoObjetivo.width/2)).setY(100);
+                            });
+                        }
+                    }
+                    return;
+                }
+                let lixoProx = null;
+                lixosMarinhos.getChildren().forEach(l => { if (l.active && Phaser.Math.Distance.Between(player.x, player.y, l.x, l.y) < 120) lixoProx = l; });
+                if (lixoProx) {
+                    dicaLixo.setPosition(lixoProx.x-30, lixoProx.y-40).setVisible(true);
+                    if (Phaser.Input.Keyboard.JustDown(keyE)) { lixoProx.disableBody(true, true); if (lixosMarinhos.countActive() === 0) textoObjetivo.setText(TEXTOS[idiomaAtual].obj_falar_golf); }
+                } else dicaLixo.setVisible(false);
+                
+                if (lixosMarinhos.countActive() === 0 && Phaser.Math.Distance.Between(player.x, player.y, golfinho.x, golfinho.y) < 120) {
+                    dicaLixo.setText(TEXTOS[idiomaAtual].dica_falar).setPosition(golfinho.x, golfinho.y-60).setVisible(true);
+                    if (Phaser.Input.Keyboard.JustDown(keyE)) {
+                        dialogando = true; dialogStep = 1; golfinho.setTexture('golf_feliz').setFlipX(false);
+                        portraitOnca.setTexture('golf_feliz').setVisible(true); 
+                        portraitCientista.setVisible(false);
+                        txtDialogo.setText(TEXTOS[idiomaAtual].golf1); dialogoContainer.setVisible(true);
+                    }
+                }
+                if (cursors.left.isDown || keyA.isDown) { player.setVelocityX(-130); player.anims.play('nadar', true); player.flipX = true; }
+                else if (cursors.right.isDown || keyD.isDown) { player.setVelocityX(130); player.anims.play('nadar', true); player.flipX = false; }
+                else { player.setVelocityX(0); player.anims.stop(); player.setTexture('flutuando'); }
+                if (player.body.touching.down) { qtdePulos = 0; }
+                if ((Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(keyEspaco) || Phaser.Input.Keyboard.JustDown(keyW))) {
+                    if (player.body.touching.down) {
+                        player.setVelocityY(-250);
+                        qtdePulos = 1;
+                    } else if (qtdePulos < 2) {
+                        player.setVelocityY(-220);
+                        qtdePulos = 2;
+                    }
+                }
+            }
+        };
+
+        const config = {
+            type: Phaser.AUTO, width: 800, height: 600, pixelArt: true,
+            physics: { default: 'arcade', arcade: { gravity: { y: 700 }, debug: false } },
+            scene: [ MenuScene, TutorialScene, Fase1, FaseOceano, FaseOceanoAberta ]
+        };
+        const game = new Phaser.Game(config);
+
+    </script>
+</body>
+</html>
